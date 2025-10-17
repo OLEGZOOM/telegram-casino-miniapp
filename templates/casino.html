@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .balance {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .balance-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffeb3b;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .game-card:active {
+            transform: translateY(-2px);
+        }
+
+        .game-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .game-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .game-desc {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .bet-controls {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: none;
+        }
+
+        .bet-controls.show {
+            display: block;
+        }
+
+        .bet-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .bet-amount {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .bet-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .bet-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 18px;
+            width: 100px;
+        }
+
+        .play-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            border: none;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .play-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .game-result {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: none;
+        }
+
+        .game-result.show {
+            display: block;
+        }
+
+        .result-icon {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+
+        .result-text {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .result-amount {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .win {
+            color: #4CAF50;
+        }
+
+        .lose {
+            color: #f44336;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .slot-machine {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            font-size: 40px;
+        }
+
+        .slot-reel {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        @keyframes spin {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+
+        .spinning {
+            animation: spin 1s linear;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎰 Casino Mini App</h1>
+        </div>
+
+        <div class="balance" id="balance">
+            <div>💰 Your Balance</div>
+            <div class="balance-amount" id="balance-amount">$1000</div>
+        </div>
+
+        <div class="games-grid" id="games-grid">
+            <div class="game-card" onclick="selectGame('slots')">
+                <span class="game-icon">🎰</span>
+                <div class="game-title">Slot Machine</div>
+                <div class="game-desc">Match symbols to win!</div>
+            </div>
+            
+            <div class="game-card" onclick="selectGame('dice')">
+                <span class="game-icon">🎲</span>
+                <div class="game-title">Dice Roll</div>
+                <div class="game-desc">Beat the house!</div>
+            </div>
+            
+            <div class="game-card" onclick="selectGame('coinflip')">
+                <span class="game-icon">🪙</span>
+                <div class="game-title">Coin Flip</div>
+                <div class="game-desc">Double or nothing!</div>
+            </div>
+            
+            <div class="game-card" onclick="selectGame('blackjack')">
+                <span class="game-icon">🃏</span>
+                <div class="game-title">Blackjack</div>
+                <div class="game-desc">Get 21 to win!</div>
+            </div>
+        </div>
+
+        <div class="bet-controls" id="bet-controls">
+            <div class="bet-title" id="game-title">Select Bet Amount</div>
+            
+            <div class="bet-amount">
+                <button class="bet-btn" onclick="changeBet(-10)">-</button>
+                <input type="number" class="bet-input" id="bet-input" value="10" min="5" max="1000">
+                <button class="bet-btn" onclick="changeBet(10)">+</button>
+            </div>
+            
+            <div id="coin-choice" style="display: none; text-align: center; margin-bottom: 15px;">
+                <button class="bet-btn" onclick="setCoinChoice('heads')" id="heads-btn">Heads</button>
+                <span style="margin: 0 10px;">or</span>
+                <button class="bet-btn" onclick="setCoinChoice('tails')" id="tails-btn">Tails</button>
+            </div>
+            
+            <button class="play-btn" onclick="playGame()" id="play-btn">Play Now</button>
+            <button class="back-btn" onclick="showGames()">Back to Games</button>
+        </div>
+
+        <div class="game-result" id="game-result">
+            <div class="result-icon" id="result-icon">🎉</div>
+            <div class="result-text" id="result-text">You Won!</div>
+            <div class="result-amount" id="result-amount">+$50</div>
+            <button class="play-btn" onclick="showBetControls()" style="margin-top: 15px;">Play Again</button>
+            <button class="back-btn" onclick="showGames()">Back to Games</button>
+        </div>
+
+        <div id="slot-display" style="display: none;">
+            <div class="slot-machine">
+                <div class="slot-reel" id="reel1">🍒</div>
+                <div class="slot-reel" id="reel2">🍋</div>
+                <div class="slot-reel" id="reel3">🍊</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Telegram Web App
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+
+        let currentGame = '';
+        let currentBet = 10;
+        let coinChoice = 'heads';
+        let userBalance = 1000;
+        let userId = window.Telegram.WebApp.initDataUnsafe?.user?.id || 'demo';
+
+        // Load user data
+        async function loadUserData() {
+            try {
+                const response = await fetch(`/api/user/${userId}`);
+                const userData = await response.json();
+                userBalance = userData.balance;
+                updateBalanceDisplay();
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+
+        function updateBalanceDisplay() {
+            document.getElementById('balance-amount').textContent = `$${userBalance}`;
+        }
+
+        function selectGame(game) {
+            currentGame = game;
+            const gameNames = {
+                'slots': '🎰 Slot Machine',
+                'dice': '🎲 Dice Roll',
+                'coinflip': '🪙 Coin Flip',
+                'blackjack': '🃏 Blackjack'
+            };
+            
+            document.getElementById('game-title').textContent = gameNames[game];
+            
+            // Show/hide coin choice for coinflip
+            if (game === 'coinflip') {
+                document.getElementById('coin-choice').style.display = 'block';
+            } else {
+                document.getElementById('coin-choice').style.display = 'none';
+            }
+            
+            showBetControls();
+        }
+
+        function showGames() {
+            document.getElementById('games-grid').style.display = 'grid';
+            document.getElementById('bet-controls').classList.remove('show');
+            document.getElementById('game-result').classList.remove('show');
+            document.getElementById('slot-display').style.display = 'none';
+        }
+
+        function showBetControls() {
+            document.getElementById('games-grid').style.display = 'none';
+            document.getElementById('bet-controls').classList.add('show');
+            document.getElementById('game-result').classList.remove('show');
+            document.getElementById('slot-display').style.display = 'none';
+        }
+
+        function changeBet(amount) {
+            currentBet = Math.max(5, Math.min(1000, currentBet + amount));
+            document.getElementById('bet-input').value = currentBet;
+        }
+
+        function setCoinChoice(choice) {
+            coinChoice = choice;
+            document.getElementById('heads-btn').style.background = choice === 'heads' ? 'rgba(76, 175, 80, 0.8)' : 'rgba(255, 255, 255, 0.2)';
+            document.getElementById('tails-btn').style.background = choice === 'tails' ? 'rgba(76, 175, 80, 0.8)' : 'rgba(255, 255, 255, 0.2)';
+        }
+
+        async function playGame() {
+            currentBet = parseInt(document.getElementById('bet-input').value);
+            
+            if (currentBet > userBalance) {
+                alert('Insufficient balance!');
+                return;
+            }
+
+            document.getElementById('play-btn').disabled = true;
+            document.getElementById('play-btn').textContent = 'Playing...';
+
+            let result = 'loss';
+            let displayText = '';
+            
+            // Simulate different games
+            switch (currentGame) {
+                case 'slots':
+                    result = await playSlots();
+                    break;
+                case 'dice':
+                    result = playDice();
+                    break;
+                case 'coinflip':
+                    result = playCoinFlip();
+                    break;
+                case 'blackjack':
+                    result = playBlackjack();
+                    break;
+            }
+
+            // Send result to server
+            try {
+                const response = await fetch('/api/play', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        game_type: currentGame,
+                        bet_amount: currentBet,
+                        result: result
+                    }),
+                });
+                
+                const data = await response.json();
+                userBalance = data.new_balance;
+                updateBalanceDisplay();
+                
+                showResult(result, data.winnings);
+            } catch (error) {
+                console.error('Error playing game:', error);
+            }
+
+            document.getElementById('play-btn').disabled = false;
+            document.getElementById('play-btn').textContent = 'Play Now';
+        }
+
+        async function playSlots() {
+            document.getElementById('slot-display').style.display = 'block';
+            
+            const symbols = ['🍒', '🍋', '🍊', '🍇', '⭐', '💎', '7️⃣'];
+            const reels = ['reel1', 'reel2', 'reel3'];
+            
+            // Animate spinning
+            reels.forEach(reel => {
+                document.getElementById(reel).classList.add('spinning');
+            });
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Generate results
+            const result1 = symbols[Math.floor(Math.random() * symbols.length)];
+            const result2 = symbols[Math.floor(Math.random() * symbols.length)];
+            const result3 = symbols[Math.floor(Math.random() * symbols.length)];
+            
+            document.getElementById('reel1').textContent = result1;
+            document.getElementById('reel2').textContent = result2;
+            document.getElementById('reel3').textContent = result3;
+            
+            reels.forEach(reel => {
+                document.getElementById(reel).classList.remove('spinning');
+            });
+            
+            // Check for wins
+            if (result1 === result2 && result2 === result3) {
+                if (result1 === '💎') return 'jackpot';
+                if (result1 === '7️⃣') return 'big_win';
+                return 'win';
+            } else if (result1 === result2 || result2 === result3 || result1 === result3) {
+                return Math.random() > 0.7 ? 'win' : 'loss';
+            }
+            
+            return 'loss';
+        }
+
+        function playDice() {
+            const playerRoll = Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1;
+            const houseRoll = Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1;
+            
+            return playerRoll > houseRoll ? 'win' : 'loss';
+        }
+
+        function playCoinFlip() {
+            const flip = Math.random() > 0.5 ? 'heads' : 'tails';
+            return flip === coinChoice ? 'win' : 'loss';
+        }
+
+        function playBlackjack() {
+            const playerCards = Math.floor(Math.random() * 21) + 1;
+            const dealerCards = Math.floor(Math.random() * 21) + 1;
+            
+            if (playerCards === 21) return 'big_win';
+            if (playerCards > 21) return 'loss';
+            
+            return playerCards > dealerCards ? 'win' : 'loss';
+        }
+
+        function showResult(result, winnings) {
+            const resultIcons = {
+                'win': '🎉',
+                'big_win': '💰',
+                'jackpot': '🏆',
+                'loss': '😔'
+            };
+            
+            const resultTexts = {
+                'win': 'You Won!',
+                'big_win': 'Big Win!',
+                'jackpot': 'JACKPOT!',
+                'loss': 'Try Again!'
+            };
+            
+            document.getElementById('result-icon').textContent = resultIcons[result];
+            document.getElementById('result-text').textContent = resultTexts[result];
+            
+            const amountElement = document.getElementById('result-amount');
+            if (winnings > 0) {
+                amountElement.textContent = `+$${winnings}`;
+                amountElement.className = 'result-amount win';
+            } else {
+                amountElement.textContent = `-$${Math.abs(winnings)}`;
+                amountElement.className = 'result-amount lose';
+            }
+            
+            document.getElementById('bet-controls').classList.remove('show');
+            document.getElementById('game-result').classList.add('show');
+        }
+
+        // Initialize
+        loadUserData();
+        setCoinChoice('heads');
+    </script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+web: python casino_miniapp_bot.py
