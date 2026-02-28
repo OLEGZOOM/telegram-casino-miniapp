@@ -1,4 +1,2 @@
 python-telegram-bot==13.7
 cachetools==5.0.0
-APScheduler==3.9.1
-pytz==2022.1
